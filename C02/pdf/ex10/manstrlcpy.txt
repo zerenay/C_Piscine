@@ -1,0 +1,89 @@
+İSİM
+     strlcpy, strlcat - boyut sınırlamalı dize kopyalama ve birleştirme
+
+KÜTÜPHANE
+     Standart C Kütüphanesi (libc, -lc)
+
+SİNOPSİS
+     #include <string.h>
+
+     size_t
+     strlcpy(char * restrict dst, const char * restrict src, size_t dstsize);
+
+     size_t
+     strlcat(char * restrict dst, const char * restrict src, size_t dstsize);
+
+AÇIKLAMA
+     strlcpy() ve strlcat() işlevleri, dizeleri aynı giriş parametreleri ve çıktı sonucu ile kopyalar ve birleştirir
+     snprintf(3).  Bunlar daha güvenli, daha tutarlı ve kolayca kötüye kullanılan snprintf(3) için daha az hata eğilimli yedekler olarak tasarlanmıştır.
+     strncpy(3) ve strncat(3) fonksiyonları.
+
+     strlcpy() ve strlcat() hedef tamponun tam boyutunu alır ve yer varsa NUL sonlandırmayı garanti eder.
+     NUL için ayrılan yerin dstsize'a dahil edilmesi gerektiğini unutmayın.  Ayrıca strlcpy() ve strlcat() işlevlerinin yalnızca true
+     ''C'' dizeleri. Bu, strlcpy() için src'nin NUL ile sonlandırılmış olması gerektiği ve strlcat() için hem src hem de dst()'nin NUL ile sonlandırılmış olması gerektiği anlamına gelir.
+     sonlandırılır.
+
+     strlcpy() src dizesinden dstsize - 1 karaktere kadar dst'ye kopyalar, dstsize 0 değilse sonucu NUL ile sonlandırır.
+
+     strlcat() src dizesini dst dizesinin sonuna ekler.  En fazla dstsize - strlen(dst) - 1 karakter ekleyecektir.  Bu olacak
+     dstsize 0 olmadıkça veya orijinal dst dizesi dstsize'dan uzun olmadıkça NUL ile sonlandırılır (pratikte bu
+     dstsize'ın yanlış olduğu ya da dst'nin uygun bir dizge olmadığı anlamına gelir).
+
+     Eğer src ve dst dizeleri çakışırsa, davranış tanımsızdır.
+
+DÖNÜŞ DEĞERLERİ
+     Geri dönüş tipi (int'e karşı size_t) ve sinyal işleyici güvenliği (snprintf(3) tamamen güvenli değildir) ile ilgili tartışmaların yanı sıra
+     bazı sistemler), aşağıdaki ikisi eşdeğerdir:
+
+           n = strlcpy(dst, src, len);
+           n = snprintf(dst, len, “%s”, src);
+
+     snprintf(3) gibi, strlcpy() ve strlcat() işlevleri de oluşturmaya çalıştıkları dizenin toplam uzunluğunu döndürür.  İçin
+     strlcpy() için bu, src'nin uzunluğu anlamına gelir.  strlcat() için bu, dst'nin başlangıç uzunluğu artı src'nin uzunluğu anlamına gelir.
+
+     Dönüş değeri >= dstsize ise, çıktı dizesi kesilmiştir.  İşlemek çağıranın sorumluluğundadır
+     bu.
+ÖRNEKLER
+     Aşağıdaki kod parçası basit durumu göstermektedir:
+
+           char *s, *p, buf[BUFSIZ];
+
+           ...
+
+           (void)strlcpy(buf, s, sizeof(buf));
+           (void)strlcat(buf, p, sizeof(buf));
+
+     Kesmeyi tespit etmek için, belki bir yol adı oluştururken, aşağıdaki gibi bir şey kullanılabilir:
+
+           char *dir, *file, pname[MAXPATHLEN];
+
+           ...
+
+           if (strlcpy(pname, dir, sizeof(pname)) >= sizeof(pname))
+                   goto toolong;
+           eğer (strlcat(pname, file, sizeof(pname)) >= sizeof(pname))
+                   goto toolong;
+
+     İlk seferde kaç karakterin kopyalandığı bilindiğinden, aşağıdaki gibi bir kopya kullanarak işler biraz hızlandırılabilir
+     bir ekleme:
+
+           char *dir, *file, pname[MAXPATHLEN];
+           size_t n;
+
+           ...
+
+           n = strlcpy(pname, dir, sizeof(pname));
+           if (n >= sizeof(pname))
+                   goto toolong;
+           eğer (strlcpy(pname + n, file, sizeof(pname) - n) >= sizeof(pname) - n)
+                   goto toolong;
+
+     Ancak, bu tür optimizasyonların geçerliliği sorgulanabilir, çünkü strlcpy() ve
+     strlcat().  Aslına bakarsanız, bu kılavuz sayfasının ilk versiyonu yanlıştı.
+
+AYRICA BAKIN
+     snprintf(3), strncat(3), strncpy(3), wcslcpy(3)
+
+TARİHÇE
+     strlcpy() ve strlcat() fonksiyonları ilk olarak OpenBSD 2.4 ve FreeBSD 3.3'te ortaya çıkmıştır.
+
